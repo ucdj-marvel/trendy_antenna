@@ -18,8 +18,16 @@
         </form>
 
         <div class="text-end">
-          <button type="button" class="btn btn-outline-light me-2">Login</button>
-          <button type="button" class="btn btn-warning">Sign-up</button>
+          <% if user_signed_in? %>
+            <%= button_to "Logout", destroy_user_session_path, method: :delete, :class => "btn btn-warning" %>
+          <% else %>
+            <%= link_to new_user_session_path do %>
+              <button type="button" class="btn btn-outline-light me-2">Login</button>
+            <% end %>
+            <%= link_to new_user_registration_path do %>
+              <button type="button" class="btn btn-warning">Sign-up</button>
+            <% end %>
+          <% end %>
         </div>
       </div>
     </div>
