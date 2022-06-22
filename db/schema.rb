@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_06_22_081151) do
+ActiveRecord::Schema[7.0].define(version: 2022_06_22_084349) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -21,6 +21,18 @@ ActiveRecord::Schema[7.0].define(version: 2022_06_22_081151) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["command", "date"], name: "index_acquisition_results_on_command_and_date", unique: true
+  end
+
+  create_table "command_error_histories", force: :cascade do |t|
+    t.integer "command", default: 0, null: false
+    t.string "class"
+    t.string "message", null: false
+    t.text "backtrace"
+    t.text "html"
+    t.binary "screen_shot"
+    t.datetime "error_datetime"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "genders", force: :cascade do |t|

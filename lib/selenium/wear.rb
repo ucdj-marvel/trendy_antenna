@@ -44,7 +44,7 @@ def get_wear_rankings
       "rankings": b.rankings
     }
   rescue => e
-    p "WearBrowser Error."
+    p "WearBrowser Error.\n#{e.class}"
     $logger.error e.class
     $logger.error e.message
     $logger.error e.backtrace.join("\n")

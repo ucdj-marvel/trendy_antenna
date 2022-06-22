@@ -18,6 +18,7 @@ namespace :wear do
       end
       $logger.info "done."
     rescue => e
+      p "Task Error.\n#{e.class}"
       $logger.error e.class
       $logger.error e.message
       $logger.error e.backtrace.join("\n")
