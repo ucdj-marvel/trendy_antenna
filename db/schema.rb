@@ -10,9 +10,18 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_06_11_101607) do
+ActiveRecord::Schema[7.0].define(version: 2022_06_22_005921) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "acquisition_results", force: :cascade do |t|
+    t.integer "command", default: 0, null: false
+    t.jsonb "result", default: {}, null: false
+    t.date "date", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["command", "date"], name: "index_acquisition_results_on_command_and_date", unique: true
+  end
 
   create_table "users", force: :cascade do |t|
     t.string "email", default: "", null: false

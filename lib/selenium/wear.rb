@@ -1,5 +1,58 @@
+require "date"
 require "selenium-webdriver"
 require "custom_formatter"
+
+
+$logger = Logger.new("log/wear.log")
+$logger.formatter = CustomFormatter.new
+
+
+def get_acquisition_results
+  $logger.info "get_acquisition_results"
+  today = Date.today
+  return AcquisitionResult.find_by(
+    command: 0,
+    date: today
+  )
+end
+
+
+def save_acquisition_results(rankings)
+  $logger.info "save_acquisition_results"
+  today = Date.today
+  return AcquisitionResult.create(
+    command: 0,
+    date: today,
+    result: rankings
+  )
+end
+
+
+def get_wear_rankings
+  begin
+    b = WearBrowser.new
+    b.ranking_info.each do |type, path|
+      b.ranking_type = type
+      b.ranking_path = path
+      b.access_ranking_page
+      b.get_ranking
+      sleep 2
+    end
+    b.get_user_profile
+    return {
+      "status": "success",
+      "rankings": b.rankings
+    }
+  rescue => e
+    p "WearBrowser Error."
+    $logger.error e.class
+    $logger.error e.message
+    $logger.error e.backtrace.join("\n")
+    return {
+      "status": "error",
+    }
+  end
+end
 
 
 class WearBrowser
@@ -7,8 +60,6 @@ class WearBrowser
   attr_reader :ranking_info, :rankings
 
   def initialize()
-    @logger = Logger.new("log/wear.log")
-    @logger.formatter = CustomFormatter.new
     @url = "https://wear.jp/"
     @ranking_info = {
       # "all": "ranking",
@@ -17,7 +68,7 @@ class WearBrowser
       "kids": "kids-ranking",
       # "world": "world-ranking",
     }
-    @genre = [
+    @gender = [
       "MEN",
       "WOMEN",
       "KIDS",
@@ -44,7 +95,7 @@ class WearBrowser
   end
 
   def handle_dialog
-    @logger.info "alert: #{@driver.switch_to.alert.text}"
+    $logger.info "alert: #{@driver.switch_to.alert.text}"
     @driver.switch_to.alert.accept
   end
 
@@ -56,7 +107,7 @@ class WearBrowser
   end
 
   def access_ranking_page
-    @logger.info "access_#{@ranking_type}_ranking_page"
+    $logger.info "access_#{@ranking_type}_ranking_page"
 
     @driver.get "#{@url}#{@ranking_path}/"
     @driver_wait.until {
@@ -65,7 +116,7 @@ class WearBrowser
   end
 
   def get_ranking
-    @logger.info "get_#{@ranking_type}_ranking"
+    $logger.info "get_#{@ranking_type}_ranking"
 
     doc = Nokogiri::HTML.parse(@driver.page_source)
 
@@ -82,7 +133,7 @@ class WearBrowser
       img = li.css(".image")
       detail_link = img.css("a").attribute("href").value
       path_list = detail_link.split("/")
-      image_src = img.css("p > img").attribute("src").value
+      image_path = img.css("p > img").attribute("src").value
 
       name = li.css(".profile > .main > p > span.namefirst").text.strip
       @rankings.push(
@@ -91,7 +142,7 @@ class WearBrowser
           "rank": rank,
           "user_id": path_list[1],
           "fashion_id": path_list[2],
-          "image_src": image_src,
+          "image_url": "https:#{image_path}",
           "name": name,
         }
       )
@@ -106,26 +157,29 @@ class WearBrowser
   end
 
   def get_user_profile
-    @logger.info "get_user_profile"
+    $logger.info "get_user_profile"
 
     @rankings.each_with_index do |rank_info, index|
       profile_url = "#{@url}#{rank_info[:user_id]}/"
       @driver.get profile_url
-      @logger.debug "#{rank_info[:category]} rank #{rank_info[:rank]}: #{profile_url}"
+      $logger.debug "#{rank_info[:category]} rank #{rank_info[:rank]}: #{profile_url}"
       @driver_wait.until {
         @driver.find_element(:xpath, "//*[@id='user_main']/section[@class='profile']/p[@class='txt']")
       }
       doc = Nokogiri::HTML.parse(@driver.page_source)
 
       if Rails.env.development? && index == 0
-        @logger.debug "#{rank_info['user_id']} html file create."
+        $logger.debug "#{rank_info['user_id']} html file create."
         file = File.open("#{Rails.root}/tmp/wear/profile.html", "w")
         file.write(doc.to_s)
         file.close
       end
 
-      doc.xpath("//*[@id='user_sub']/div[@class='image']/p/img").attribute("src").value
-      doc.xpath("//*[@id='user_main']/section[@class='intro']/div/ul[contains(@class, 'info')]/li").each do |li|
+      icon_path = doc.xpath("//*[@id='user_sub']/div[@class='image']/p/img").attribute("src").value
+      rank_info["icon_url"] = "https:#{icon_path}"
+      doc.xpath(
+        "//*[@id='user_main']/section[@class='intro']/div/ul[contains(@class, 'info')]/li"
+      ).each do |li|
         li_txt = li.text.strip
         if li_txt.include?("@")
           next
@@ -133,13 +187,16 @@ class WearBrowser
           rank_info["age"] = li_txt.delete("歳").to_i
         elsif li_txt.include?("cm")
           rank_info["height"] = li_txt.delete("cm").to_i
-        elsif @genre.include?(li_txt)
-          rank_info["genre"] = li_txt
+        elsif @gender.include?(li_txt)
+          rank_info["ranking_type"] = li_txt
         else
           rank_info["hairstyle"] = li_txt
         end
       end
       profile_txt = doc.xpath("//*[@id='user_main']/section[@class='profile']/p[@class='txt']")
+      profile_txt.search("br").each do |br|
+        br.replace("\n")
+      end
       rank_info["profile_txt"] = profile_txt.text.strip
 
       sleep 2
