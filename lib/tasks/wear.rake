@@ -3,6 +3,8 @@ require "#{Rails.root}/lib/selenium/wear"
 $logger = Logger.new("log/wear.log")
 $logger.formatter = CustomFormatter.new
 
+$client = Slack::Web::Client.new
+
 namespace :wear do
   desc "WEAR Scraping"
 
@@ -23,10 +25,11 @@ namespace :wear do
       end
       $logger.info "done."
     rescue => e
-      p "Task Error.\n#{e.class}"
-      $logger.error e.class
-      $logger.error e.message
-      $logger.error e.backtrace.join("\n")
+      puts "Task Error: #{e.class}"
+      $client.chat_postMessage(
+        channel: ENV["TRENDY_ANTENNA_CHANNEL"],
+        text: "#{e.class}: #{e.message}\n#{e.backtrace.join('\n')}"
+      )
     end
   end
 end

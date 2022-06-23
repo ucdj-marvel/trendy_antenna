@@ -63,7 +63,7 @@ def get_wear_rankings
       "rankings": b.rankings
     }
   rescue => e
-    p "WearBrowser Error.\n#{e.class}"
+    puts "WearBrowser Error: #{e.class}"
     $logger.error e.class
     $logger.error e.message
     $logger.error e.backtrace.join("\n")
@@ -80,7 +80,7 @@ class WearBrowser
   attr_reader :ranking_info, :rankings
 
   def initialize()
-    @url = "https://wer.jp//////"
+    @url = "https://wer.jp//"
     @ranking_info = {
       # "all": "ranking",
       "men": "men-ranking",
