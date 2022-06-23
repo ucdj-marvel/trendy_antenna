@@ -10,11 +10,16 @@ namespace :wear do
     begin
       @result = get_acquisition_results
       if @result.nil?
-        result = get_wear_rankings
-        if result[:status] == "error"
-          return
+        scraping_result = get_wear_rankings
+        if scraping_result[:status] == "error"
+          save_error_history(
+            scraping_result[:error_contents]
+          )
+          next
         end
-        @result = save_acquisition_results(result[:rankings])
+        @result = save_acquisition_results(
+          scraping_result[:rankings]
+        )
       end
       $logger.info "done."
     rescue => e

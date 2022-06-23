@@ -39,4 +39,28 @@ RailsAdmin.config do |config|
     # history_index
     # history_show
   end
+
+  config.model 'CommandErrorHistory' do
+    list do
+      field :id
+      field :command
+      field :error_class
+      field :message
+      field :backtrace
+      field :error_datetime
+      field :screen_shot do
+        formatted_value do
+          bindings[:view].tag(
+            :img, {
+              :src => "data:image/png;base64,#{bindings[:object].screen_shot}",
+              :width => 120,
+              :height => 120
+            }
+          ) << value
+        end
+      end
+      field :created_at
+      field :updated_at
+    end
+  end
 end

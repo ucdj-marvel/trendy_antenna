@@ -28,9 +28,28 @@ def save_acquisition_results(rankings)
 end
 
 
+def save_error_history(error_contents)
+  $logger.info "save_error_history"
+  binary_data = File.read(
+    error_contents[:ss_path]
+  )
+  CommandErrorHistory.create(
+    command: 0,
+    error_class: error_contents[:error_class],
+    message: error_contents[:message],
+    backtrace: error_contents[:backtrace],
+    html: error_contents[:html],
+    screen_shot: Base64.strict_encode64(
+      binary_data
+    ),
+    error_datetime: error_contents[:error_datetime]
+  )
+end
+
+
 def get_wear_rankings
+  b = WearBrowser.new
   begin
-    b = WearBrowser.new
     b.ranking_info.each do |type, path|
       b.ranking_type = type
       b.ranking_path = path
@@ -50,6 +69,7 @@ def get_wear_rankings
     $logger.error e.backtrace.join("\n")
     return {
       "status": "error",
+      "error_contents": b.error_contents(e)
     }
   end
 end
@@ -60,7 +80,7 @@ class WearBrowser
   attr_reader :ranking_info, :rankings
 
   def initialize()
-    @url = "https://wear.jp/"
+    @url = "https://wer.jp//////"
     @ranking_info = {
       # "all": "ranking",
       "men": "men-ranking",
@@ -76,7 +96,6 @@ class WearBrowser
     @ranking_type = ""
     @ranking_path = ""
     @rankings = []
-
 
     if !File.directory?("#{Rails.root}/tmp/wear/")
       Dir.mkdir("#{Rails.root}/tmp/wear/")
@@ -99,11 +118,22 @@ class WearBrowser
     @driver.switch_to.alert.accept
   end
 
-  def save_screenshot
-    page_width = @driver.execute_script('return document.body.scrollWidth')
-    page_height = @driver.execute_script('return document.body.scrollHeight')
-    @driver.manage.window.resize_to(page_width, page_height)
-    @driver.save_screenshot("#{Rails.root}/tmp/wear/screenshot.png")
+  def save_screenshot(ss_path)
+    @driver.save_screenshot(ss_path)
+  end
+
+  def error_contents(e)
+    doc = Nokogiri::HTML.parse(@driver.page_source)
+    ss_path = "#{Rails.root}/tmp/wear/error.png"
+    save_screenshot(ss_path)
+    return {
+      "error_class": e.class,
+      "message": e.message,
+      "backtrace": e.backtrace.join("\n"),
+      "html": doc.to_s,
+      "ss_path": ss_path,
+      "error_datetime": DateTime.now,
+    }
   end
 
   def access_ranking_page
