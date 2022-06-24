@@ -8,8 +8,8 @@ class Ability
     # ログインしているかつadminカラムがtrueの場合
     if user && user.admin?
       # rails_adminへのアクセスを許可
-      can :manage, :rails_admin
-      can :read, :all
+      can :access, :rails_admin
+      can :manage, :all
     end
 
     # The first argument to `can` is the action you are giving the user

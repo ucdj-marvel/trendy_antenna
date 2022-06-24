@@ -20,7 +20,7 @@ end
 def save_acquisition_results(rankings)
   $logger.info "save_acquisition_results"
   today = Date.today
-  return AcquisitionResult.create(
+  return AcquisitionResult.create!(
     command: 0,
     date: today,
     result: rankings
@@ -33,7 +33,7 @@ def save_error_history(error_contents)
   binary_data = File.read(
     error_contents[:ss_path]
   )
-  CommandErrorHistory.create(
+  CommandErrorHistory.create!(
     command: 0,
     error_class: error_contents[:error_class],
     message: error_contents[:message],
@@ -44,6 +44,51 @@ def save_error_history(error_contents)
     ),
     error_datetime: error_contents[:error_datetime]
   )
+end
+
+
+def save_wear_rankings(acquisition_result)
+  d = acquisition_result.date
+  ApplicationRecord.transaction do
+    for rank_info in acquisition_result.result do
+      rank_info = rank_info.symbolize_keys
+      gender = Gender.find_or_create_by!(
+        name: rank_info[:gender]
+      )
+      hairstyle = nil
+      if rank_info[:hairstyle]
+        hairstyle = Hairstyle.find_or_create_by!(
+          name: rank_info[:hairstyle]
+        )
+      end
+      outfit_poster = OutfitPoster.create!(
+        gender: gender,
+        hairstyle: hairstyle,
+        user_id: rank_info[:user_id],
+        name: rank_info[:name],
+        icon_url: rank_info[:icon_url],
+        age: rank_info[:age],
+        height: rank_info[:height],
+        intro: rank_info[:profile_txt],
+      )
+      outfit_detail = OutfitDetail.create!(
+        outfit_poster: outfit_poster,
+        fashion_id: rank_info[:fashion_id],
+        title: rank_info[:title],
+        img_url: rank_info[:image_url],
+      )
+      ranking_type = RankingType.find_or_create_by(
+        name: rank_info[:ranking_type]
+      )
+      OutfitRanking.create!(
+        outfit_detail: outfit_detail,
+        ranking_type: ranking_type,
+        rank: rank_info[:rank],
+        year: d.year,
+        month: d.month,
+      )
+    end
+  end
 end
 
 
@@ -80,7 +125,7 @@ class WearBrowser
   attr_reader :ranking_info, :rankings
 
   def initialize()
-    @url = "https://wer.jp//"
+    @url = "https://wear.jp/"
     @ranking_info = {
       # "all": "ranking",
       "men": "men-ranking",
@@ -101,12 +146,18 @@ class WearBrowser
       Dir.mkdir("#{Rails.root}/tmp/wear/")
     end
 
-    Selenium::WebDriver::Chrome::Service.driver_path = "#{Rails.root}/bin/chromedriver"
+    driver_path = "#{Rails.root}/bin/chromedriver"
+    if Rails.env.development?
+      driver_path = "#{Rails.root}/tmp/chrome/chromedriver"
+    end
+    Selenium::WebDriver::Chrome::Service.driver_path = driver_path
 
     options = Selenium::WebDriver::Chrome::Options.new
-    # options.add_argument("--headless")
+    options.add_argument("--headless")
     options.add_argument("--no-sandbox")
+    options.add_argument("--disable-gpu")
     options.add_argument("--disable-infobars")
+    options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--disable-setuid-sandbox")
 
     @driver = Selenium::WebDriver.for :chrome, capabilities: [options]
@@ -164,16 +215,18 @@ class WearBrowser
       detail_link = img.css("a").attribute("href").value
       path_list = detail_link.split("/")
       image_path = img.css("p > img").attribute("src").value
+      title = img.css("p > img").attribute("alt").value
 
       name = li.css(".profile > .main > p > span.namefirst").text.strip
       @rankings.push(
         {
-          "category": @type,
+          "ranking_type": @ranking_type,
           "rank": rank,
           "user_id": path_list[1],
           "fashion_id": path_list[2],
           "image_url": "https:#{image_path}",
           "name": name,
+          "title": title,
         }
       )
     end
@@ -218,7 +271,7 @@ class WearBrowser
         elsif li_txt.include?("cm")
           rank_info["height"] = li_txt.delete("cm").to_i
         elsif @gender.include?(li_txt)
-          rank_info["ranking_type"] = li_txt
+          rank_info["gender"] = li_txt
         else
           rank_info["hairstyle"] = li_txt
         end

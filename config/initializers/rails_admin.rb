@@ -40,7 +40,7 @@ RailsAdmin.config do |config|
     # history_show
   end
 
-  config.model 'CommandErrorHistory' do
+  config.model "CommandErrorHistory" do
     list do
       field :id
       field :command
@@ -63,4 +63,6 @@ RailsAdmin.config do |config|
       field :updated_at
     end
   end
+
+  config.parent_controller = "ApplicationController"
 end
