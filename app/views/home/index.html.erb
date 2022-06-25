@@ -39,70 +39,82 @@
   </header>
 
   <div class="container px-4 py-5" id="custom-cards">
-    <h2 class="pb-2 border-bottom">Custom cards</h2>
-
+    <h2 class="pb-2 border-bottom">MEN RANKING</h2>
     <div class="row row-cols-1 row-cols-lg-3 align-items-stretch g-4 py-5">
-      <div class="col">
-        <div class="card card-cover h-100 overflow-hidden text-white bg-dark rounded-5 shadow-lg" style="background-image: url('unsplash-photo-1.jpg');">
-          <div class="d-flex flex-column h-100 p-5 pb-3 text-white text-shadow-1">
-            <h2 class="pt-5 mt-5 mb-4 display-6 lh-1 fw-bold">Short title, long jacket</h2>
-            <ul class="d-flex list-unstyled mt-auto">
-              <li class="me-auto">
-                <img src="https://github.com/twbs.png" alt="Bootstrap" width="32" height="32" class="rounded-circle border border-white">
-              </li>
-              <li class="d-flex align-items-center me-3">
-                <svg class="bi me-2" width="1em" height="1em"><use xlink:href="#geo-fill"></use></svg>
-                <small>Earth</small>
-              </li>
-              <li class="d-flex align-items-center">
-                <svg class="bi me-2" width="1em" height="1em"><use xlink:href="#calendar3"></use></svg>
-                <small>3d</small>
-              </li>
-            </ul>
+      <% @men_rankings.each do |ranking| %>
+        <div class="col">
+          <div
+            class="card card-cover h-100 overflow-hidden text-white bg-dark rounded-5 shadow-lg"
+          >
+            <img src="<%= ranking.outfit_detail.img_url %>" class="img-responsive">
+            <div class="d-flex flex-column p-5 text-white text-shadow-1">
+              <div class="mb-4 display-6 fw-bold bg-dark rank"><%= ranking.rank %></div>
+              <ul class="d-flex list-unstyled mt-auto">
+                <li class="me-auto">
+                  <img src="<%= ranking.outfit_detail.outfit_poster.icon_url %>" alt="<%= ranking.outfit_detail.title %>" width="32" height="32" class="rounded-circle border border-white">
+                </li>
+                <li class="d-flex align-items-center me-3">
+                  <a href="https://wear.jp/<%= ranking.outfit_detail.outfit_poster.user_id %>/" class="card-link"><%= ranking.outfit_detail.outfit_poster.name %></a>
+                </li>
+                <li class="d-flex align-items-center">
+                  <a href="https://wear.jp/<%= ranking.outfit_detail.outfit_poster.user_id %>/<%= ranking.outfit_detail.fashion_id %>/" class="card-link">コーデ詳細</a>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
-      </div>
-
-      <div class="col">
-        <div class="card card-cover h-100 overflow-hidden text-white bg-dark rounded-5 shadow-lg" style="background-image: url('unsplash-photo-2.jpg');">
-          <div class="d-flex flex-column h-100 p-5 pb-3 text-white text-shadow-1">
-            <h2 class="pt-5 mt-5 mb-4 display-6 lh-1 fw-bold">Much longer title that wraps to multiple lines</h2>
-            <ul class="d-flex list-unstyled mt-auto">
-              <li class="me-auto">
-                <img src="https://github.com/twbs.png" alt="Bootstrap" width="32" height="32" class="rounded-circle border border-white">
-              </li>
-              <li class="d-flex align-items-center me-3">
-                <svg class="bi me-2" width="1em" height="1em"><use xlink:href="#geo-fill"></use></svg>
-                <small>Pakistan</small>
-              </li>
-              <li class="d-flex align-items-center">
-                <svg class="bi me-2" width="1em" height="1em"><use xlink:href="#calendar3"></use></svg>
-                <small>4d</small>
-              </li>
-            </ul>
+      <% end %>
+    </div>
+    <h2 class="pb-2 border-bottom">WOMEN RANKING</h2>
+    <div class="row row-cols-1 row-cols-lg-3 align-items-stretch g-4 py-5">
+      <% @women_rankings.each do |ranking| %>
+        <div class="col">
+          <div
+            class="card card-cover h-100 overflow-hidden text-white bg-dark rounded-5 shadow-lg"
+          >
+            <img src="<%= ranking.outfit_detail.img_url %>" class="img-responsive">
+            <div class="d-flex flex-column p-5 text-white text-shadow-1">
+              <div class="mb-4 display-6 fw-bold bg-dark rank"><%= ranking.rank %></div>
+              <ul class="d-flex list-unstyled mt-auto">
+                <li class="me-auto">
+                  <img src="<%= ranking.outfit_detail.outfit_poster.icon_url %>" alt="<%= ranking.outfit_detail.title %>" width="32" height="32" class="rounded-circle border border-white">
+                </li>
+                <li class="d-flex align-items-center me-3">
+                  <a href="https://wear.jp/<%= ranking.outfit_detail.outfit_poster.user_id %>/" class="card-link"><%= ranking.outfit_detail.outfit_poster.name %></a>
+                </li>
+                <li class="d-flex align-items-center">
+                  <a href="https://wear.jp/<%= ranking.outfit_detail.outfit_poster.user_id %>/<%= ranking.outfit_detail.fashion_id %>/" class="card-link">コーデ詳細</a>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
-      </div>
-
-      <div class="col">
-        <div class="card card-cover h-100 overflow-hidden text-white bg-dark rounded-5 shadow-lg" style="background-image: url('unsplash-photo-3.jpg');">
-          <div class="d-flex flex-column h-100 p-5 pb-3 text-shadow-1">
-            <h2 class="pt-5 mt-5 mb-4 display-6 lh-1 fw-bold">Another longer title belongs here</h2>
-            <ul class="d-flex list-unstyled mt-auto">
-              <li class="me-auto">
-                <img src="https://github.com/twbs.png" alt="Bootstrap" width="32" height="32" class="rounded-circle border border-white">
-              </li>
-              <li class="d-flex align-items-center me-3">
-                <svg class="bi me-2" width="1em" height="1em"><use xlink:href="#geo-fill"></use></svg>
-                <small>California</small>
-              </li>
-              <li class="d-flex align-items-center">
-                <svg class="bi me-2" width="1em" height="1em"><use xlink:href="#calendar3"></use></svg>
-                <small>5d</small>
-              </li>
-            </ul>
+      <% end %>
+    </div>
+    <h2 class="pb-2 border-bottom">KIDS RANKING</h2>
+    <div class="row row-cols-1 row-cols-lg-3 align-items-stretch g-4 py-5">
+      <% @kids_rankings.each do |ranking| %>
+        <div class="col">
+          <div
+            class="card card-cover h-100 overflow-hidden text-white bg-dark rounded-5 shadow-lg"
+          >
+            <img src="<%= ranking.outfit_detail.img_url %>" class="img-responsive">
+            <div class="d-flex flex-column p-5 text-white text-shadow-1">
+              <div class="mb-4 display-6 fw-bold bg-dark rank"><%= ranking.rank %></div>
+              <ul class="d-flex list-unstyled mt-auto">
+                <li class="me-auto">
+                  <img src="<%= ranking.outfit_detail.outfit_poster.icon_url %>" alt="<%= ranking.outfit_detail.title %>" width="32" height="32" class="rounded-circle border border-white">
+                </li>
+                <li class="d-flex align-items-center me-3">
+                  <a href="https://wear.jp/<%= ranking.outfit_detail.outfit_poster.user_id %>/" class="card-link"><%= ranking.outfit_detail.outfit_poster.name %></a>
+                </li>
+                <li class="d-flex align-items-center">
+                  <a href="https://wear.jp/<%= ranking.outfit_detail.outfit_poster.user_id %>/<%= ranking.outfit_detail.fashion_id %>/" class="card-link">コーデ詳細</a>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
-      </div>
+      <% end %>
     </div>
   </div>
